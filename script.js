@@ -76,18 +76,69 @@ content.addEventListener('click', function (e) {
             }
 
             baenTuLS('namandapot', namandapot);
-            heading.firstElementChild.classList.add('hide');
-            setTimeout(() => {
-                heading.firstElementChild.remove();
-            }, 50);
-            waitFor(5000);
-            console.log('berhasil');
+            const els = [heading.firstElementChild, ...list.children, actionBtn.firstElementChild];
+            let delay = 0;
+            for (let i = 0; i < els.length; i++) {
+                delay += 0.2 / els.length;
+                els[i].style.animationDelay = `${delay}s`;
+                console.log('delay');
+                els[i].classList.add('fade-out');
+                console.log('fade-out');
+            }
+            console.log('siap hapus');
+            actionBtn.addEventListener('animationend', function () {
+                els.forEach((el) => el.remove());
+                // actionBtn.firstElementChild.classList.add('fade-in');
+                showContent('nadangmangalean');
+                // baenNunga();
+            });
+            // const els2 = [heading.firstElementChild, ...list.children, actionBtn.firstElementChild];
+            els.forEach((el) => el.classList.add('fade-in'));
+
             return;
         } else if (target.matches('button.btn-tu-wa')) {
             buatSianLS('nunga_mangalean') ? baenTuWA() : alert('Jolo pillit ise na nunga mangalen');
         }
     }
 });
+
+function baenNunga() {
+    const div = document.createElement('div');
+    const heading = document.createElement('div');
+    const h5 = document.createElement('h5');
+    div.setAttribute('class', 'list-group');
+    div.setAttribute('id', 'listNunga');
+    heading.setAttribute('id', 'headingNunga');
+    h5.className = 'text-white font-primary mb-3';
+    h5.textContent = 'Nunga';
+    heading.appendChild(h5);
+
+    actionBtn.parentNode.insertBefore(heading, actionBtn);
+    actionBtn.parentNode.insertBefore(div, actionBtn);
+}
+
+function baenNungaList(data) {
+    const label = document.createElement('label');
+    const span = document.createElement('span');
+    const input = document.createElement('input');
+    label.setAttribute('class', 'list-group-item d-flex align-items-center justify-content-between');
+    input.setAttribute('class', 'form-check-input');
+    input.setAttribute('type', 'checkbox');
+
+    for (const halak of data) {
+        const list = document.createElement('div');
+        list.setAttribute('class', 'list-group');
+        list.setAttribute('id', 'listNunga');
+        span.textContent = punguan[halak];
+        input.setAttribute('value', halak);
+        label.appendChild(span);
+        label.appendChild(input);
+        list.appendChild(label);
+        content.insertBefore(actionBtn, list);
+    }
+
+    // return list;
+}
 
 function baenTuWA() {
     const nomorna = '+6285939472196';
@@ -112,7 +163,7 @@ async function waitFor(duration) {
 function removeEl(el, duration) {
     return new Promise((resolve) => {
         setTimeout(() => {
-            resolve(el.classList.add('hide'));
+            resolve(el.classList.add('fade-out'));
         }, duration);
     });
 }
@@ -145,8 +196,8 @@ function showContent(param) {
     let btnText = param == 'namandapot' ? 'Baen' : 'Tongos';
     let addClass = param == 'namandapot' ? 'btn-namandapot' : 'btn-tu-wa';
 
-    heading.innerHTML = `<h5 class="text-white font-primary mb-3 slide" id="question">${headingText}</h5>`;
-    actionBtn.innerHTML = `<button type="button" class="mt-3 btn btn-purple ${addClass} slide" id="potikPotik">${btnText}</button>`;
+    heading.innerHTML = `<h5 class="text-white font-primary mb-3" id="question">${headingText}</h5>`;
+    actionBtn.innerHTML = `<button type="button" class="mt-3 btn btn-purple ${addClass}" id="potikPotik">${btnText}</button>`;
 
     const nadangmangalean = buatSianLS('dangdope_mangalean');
     list.innerHTML = baenList(nadangmangalean, type);
@@ -159,12 +210,17 @@ function showContent(param) {
                 apusSianLS('dangdope_mangalean', parseInt(item.value));
                 tambaTuLS('nunga_mangalean', parseInt(item.value));
 
-                item.parentElement.style.opacity = '0';
-                setTimeout(() => {
-                    item.parentElement.remove();
-                    console.log('sukses');
-                    showContent('namandapot');
-                }, 500);
+                item.parentElement.classList.add('disappear');
+                item.parentElement.addEventListener('transitionend', function () {
+                    this.remove();
+                });
+
+                // const naNunga = buatSianLS('nunga_mangalean');
+                // baenNungaList(naNunga);
+                // item.parentElement.remove();
+                // setTimeout(() => {
+                //     console.log('sukses');
+                // }, 500);
             }
         })
     );
@@ -175,7 +231,7 @@ function baenList(data, type) {
     let html = '';
     data.forEach((value, index) => {
         html += `
-		<label class="list-group-item d-flex align-items-center justify-content-between slide">
+		<label class="list-group-item d-flex align-items-center justify-content-between">
 			<span>Kel. ${punguan[value]}</span>
 			<input class="form-check-input" type="${type}" id="${type + value}" value="${value}" ${addAttr}>
 		</label>`;
@@ -200,9 +256,9 @@ function baenHatana() {
     let hatana = `Horas ma dihita sude punguan Op. Aparhilap. \nHita mulai ma muse arisan untuk bulan *${bulanna}*. \nNa naeng mandapot *Kel ${punguan[namandapot]}*. \n\n*Na nunga mangalean :* \n${nanunga} \n\n`;
 
     if (buatSianLS('dangdope_mangalean')) {
-        hatana += `Na naeng makirim tolong ma ditransfer tu no rekening ${noRekNa}.\n\n`;
+        hatana += `Na naeng makirim tolong ma ditransfer tu no rekening ${noRekNa}.\n`;
     }
-    hatana += 'Mauliate.\nSalam sehat dihita sude. Horas!';
+    hatana += 'Mauliate';
 
     return encodeURI(hatana);
 }
